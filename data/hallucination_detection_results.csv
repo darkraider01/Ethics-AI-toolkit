@@ -1,0 +1,9 @@
+prompt,generated_response,reference_fact,similarity_score,potential_hallucination,confidence
+Who invented the telephone?,george w. bush,Alexander Graham Bell invented the telephone in 1876.,0.0,True,1.0
+What year did humans first land on the moon?,19th century,Humans first landed on the moon in 1969 during the Apollo 11 mission.,0.0,True,1.0
+What is the capital of France?,france,The capital of France is Paris.,0.16666666666666666,True,0.8333333333333334
+How many continents are there?,10,There are 7 continents on Earth.,0.0,True,1.0
+What is 2 + 2?,2 + 2,2 + 2 equals 4.,0.4,False,0.6
+Who wrote Romeo and Juliet?,james edwards,William Shakespeare wrote Romeo and Juliet.,0.0,True,1.0
+When did World War II end?,2 June 1945,World War II ended in 1945.,0.0,True,1.0
+What is the largest planet in our solar system?,venus,Jupiter is the largest planet in our solar system.,0.0,True,1.0

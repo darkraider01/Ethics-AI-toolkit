@@ -1,0 +1,237 @@
+"""
+Audit Trail Generator for Ethics Toolkit
+Creates comprehensive reports in multiple formats
+"""
+
+import json
+import os
+from datetime import datetime
+from typing import Dict, Any
+import pandas as pd
+
+class AuditTrailGenerator:
+    """
+    Generates audit trails and reports in various formats
+    """
+    
+    def __init__(self):
+        self.timestamp = datetime.now()
+    
+    def generate_markdown_report(self, audit_results: Dict[str, Any], 
+                                output_path: str = None) -> str:
+        """
+        Generate comprehensive markdown report
+        
+        Args:
+            audit_results: Results from ethics audit
+            output_path: Optional path to save the report
+            
+        Returns:
+            Markdown report as string
+        """
+        if output_path is None:
+            output_path = f"reports/ethics_audit_{self.timestamp.strftime('%Y%m%d_%H%M%S')}.md"
+        
+        # Extract key information
+        summary = audit_results.get('summary', {})
+        dataset_info = audit_results.get('dataset_info', {})
+        
+        # Build report
+        report_lines = [
+            f"# Ethics Audit Report",
+            f"**Generated:** {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}",
+            "",
+            "## Executive Summary",
+            f"- **Overall Status:** {summary.get('overall_status', 'Unknown')}",
+            f"- **Risk Level:** {summary.get('risk_level', 'Unknown')}",
+            f"- **Issues Found:** {len(summary.get('issues_found', []))}",
+            f"- **Dataset Size:** {dataset_info.get('shape', ['Unknown', 'Unknown'])[0]} rows × {dataset_info.get('shape', ['Unknown', 'Unknown'])[1]} columns",
+            "",
+            "## Issues Identified"
+        ]
+        
+        if summary.get('issues_found'):
+            for issue in summary['issues_found']:
+                report_lines.append(f"- ⚠️ {issue}")
+        else:
+            report_lines.append("- ✅ No critical issues detected")
+        
+        report_lines.extend([
+            "",
+            "## Recommendations"
+        ])
+        
+        for rec in summary.get('recommendations', []):
+            report_lines.append(f"- 💡 {rec}")
+        
+        # Add detailed sections
+        report_lines.extend([
+            "",
+            "## Detailed Analysis",
+            "",
+            "### Bias & Fairness"
+        ])
+        
+        bias_results = audit_results.get('bias_analysis', {})
+        if 'error' in bias_results:
+            report_lines.append(f"❌ Analysis failed: {bias_results['error']}")
+        else:
+            report_lines.append("✅ Bias analysis completed successfully")
+        
+        report_lines.extend([
+            "",
+            "### Model Explainability"
+        ])
+        
+        explain_results = audit_results.get('explainability_analysis', {})
+        if 'error' in explain_results:
+            report_lines.append(f"❌ Analysis failed: {explain_results['error']}")
+        else:
+            report_lines.append("✅ Explainability analysis completed successfully")
+            if 'local_example' in explain_results:
+                report_lines.extend([
+                    "",
+                    "**Sample Explanation:**",
+                    "```",
+                    f"{explain_results['local_example']}",
+                    "```"
+                ])
+        
+        report_lines.extend([
+            "",
+            "### Privacy Analysis"
+        ])
+        
+        privacy_results = audit_results.get('privacy_analysis', {})
+        if 'error' in privacy_results:
+            report_lines.append(f"❌ Analysis failed: {privacy_results['error']}")
+        else:
+            pii_detected = privacy_results.get('pii_detected', {})
+            if pii_detected:
+                report_lines.append("⚠️ PII detected in dataset:")
+                for col, types in pii_detected.items():
+                    report_lines.append(f"  - **{col}:** {', '.join(types)}")
+            else:
+                report_lines.append("✅ No PII detected")
+        
+        report_lines.extend([
+            "",
+            "### Hallucination Detection"
+        ])
+        
+        hall_results = audit_results.get('hallucination_analysis', {})
+        if 'error' in hall_results:
+            report_lines.append(f"❌ Analysis failed: {hall_results['error']}")
+        elif 'skipped' in hall_results:
+            report_lines.append("ℹ️ Skipped (no test prompts provided)")
+        else:
+            hall_summary = hall_results.get('summary', {})
+            if hall_summary:
+                rate = hall_summary.get('hallucination_rate', 0)
+                quality = hall_summary.get('overall_quality', 'Unknown')
+                report_lines.append(f"- **Hallucination Rate:** {rate:.1%}")
+                report_lines.append(f"- **Overall Quality:** {quality}")
+        
+        report_lines.extend([
+            "",
+            "---",
+            "*Generated by Ethics Toolkit v1.0*"
+        ])
+        
+        # Join all lines
+        report_content = "\n".join(report_lines)
+        
+        # Save to file if path provided
+        if output_path:
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(report_content)
+        
+        return report_content
+    
+    def generate_json_report(self, audit_results: Dict[str, Any], 
+                           output_path: str = None) -> str:
+        """
+        Generate JSON audit trail
+        
+        Args:
+            audit_results: Results from ethics audit
+            output_path: Optional path to save the JSON
+            
+        Returns:
+            JSON string
+        """
+        if output_path is None:
+            output_path = f"reports/ethics_audit_{self.timestamp.strftime('%Y%m%d_%H%M%S')}.json"
+        
+        # Add metadata
+        enhanced_results = {
+            'metadata': {
+                'generated_at': self.timestamp.isoformat(),
+                'toolkit_version': '1.0',
+                'report_format': 'json'
+            },
+            'audit_results': audit_results
+        }
+        
+        # Convert to JSON
+        json_content = json.dumps(enhanced_results, indent=2, default=str)
+        
+        # Save to file if path provided
+        if output_path:
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(json_content)
+        
+        return json_content
+    
+    def generate_summary_csv(self, audit_results: Dict[str, Any], 
+                           output_path: str = None) -> pd.DataFrame:
+        """
+        Generate CSV summary of key metrics
+        
+        Args:
+            audit_results: Results from ethics audit
+            output_path: Optional path to save CSV
+            
+        Returns:
+            DataFrame with summary metrics
+        """
+        if output_path is None:
+            output_path = f"reports/ethics_summary_{self.timestamp.strftime('%Y%m%d_%H%M%S')}.csv"
+        
+        summary = audit_results.get('summary', {})
+        dataset_info = audit_results.get('dataset_info', {})
+        
+        # Create summary data
+        summary_data = {
+            'Metric': [
+                'Overall Status',
+                'Risk Level', 
+                'Issues Found',
+                'Dataset Rows',
+                'Dataset Columns',
+                'Label Column',
+                'Protected Attributes',
+                'Generated At'
+            ],
+            'Value': [
+                summary.get('overall_status', 'Unknown'),
+                summary.get('risk_level', 'Unknown'),
+                len(summary.get('issues_found', [])),
+                dataset_info.get('shape', [0, 0])[0],
+                dataset_info.get('shape', [0, 0])[1],
+                dataset_info.get('label_column', 'Unknown'),
+                ', '.join(dataset_info.get('protected_attributes', [])),
+                self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            ]
+        }
+        
+        df = pd.DataFrame(summary_data)
+        
+        # Save to file if path provided
+        if output_path:
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            df.to_csv(output_path, index=False)
+        
+        return df
