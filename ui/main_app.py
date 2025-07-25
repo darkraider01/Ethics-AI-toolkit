@@ -21,6 +21,7 @@ from styles import (
     create_status_card,
     create_metric_card,
 )
+from chatbot import EthicsChatbot
 
 # ------------------------------------------------------------------ #
 # Streamlit page configuration & global styles
@@ -283,3 +284,38 @@ st.markdown("""
     <p>Ethics Toolkit v1.0 | Built for Responsible AI Development</p>
 </div>
 """, unsafe_allow_html=True)
+
+# ------------------------------------------------------------------ #
+# Chatbot Integration
+# ------------------------------------------------------------------ #
+st.markdown("---")
+st.subheader("🤖 Ethics Chatbot")
+
+if "chatbot" not in st.session_state:
+    try:
+        st.session_state["chatbot"] = EthicsChatbot()
+    except ValueError as e:
+        st.error(f"Chatbot initialization failed: {e}. Please set the GEMINI_API_KEY environment variable.")
+        st.stop()
+    st.session_state["messages"] = []
+
+# Display chat messages from history on app rerun
+for message in st.session_state["messages"]:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# React to user input
+if prompt := st.chat_input("Ask me anything about AI ethics..."):
+    # Display user message in chat message container
+    st.chat_message("user").markdown(prompt)
+    # Add user message to chat history
+    st.session_state["messages"].append({"role": "user", "content": prompt})
+
+    with st.spinner("Thinking..."):
+        response = st.session_state["chatbot"].send_message(prompt)
+    
+    # Display assistant response in chat message container
+    with st.chat_message("assistant"):
+        st.markdown(response)
+    # Add assistant response to chat history
+    st.session_state["messages"].append({"role": "assistant", "content": response})
