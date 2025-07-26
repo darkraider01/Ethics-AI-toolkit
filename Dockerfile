@@ -1,13 +1,17 @@
 # Use a slim Python image as the base
-FROM python:3.9-slim-buster
+FROM python:3.11-slim-buster
 
 # Set the working directory in the container
 WORKDIR /app
 
 # Copy the requirements file into the container at /app
-COPY requirements.txt .
+# Create a virtual environment
+ENV VIRTUAL_ENV=/opt/venv
+RUN python -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install the Python dependencies
+# Install Python dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the entire project directory into the container
