@@ -38,11 +38,8 @@ To get this toolkit up and running, follow these steps:
     ```
 
 3.  **Install dependencies:**
-    Since there isn't a `requirements.txt` file, you'll need to install the necessary libraries. The `ui/main_app.py` indicates `streamlit` and `pandas` as core dependencies. You might also need `scikit-learn` and other libraries used in the `src` modules.
-
     ```bash
-    pip install streamlit pandas scikit-learn
-    # You may need to install other libraries mentioned in the src/ files as you encounter them, e.g., numpy, scipy, etc.
+    pip install -r requirements.txt
     ```
 
 ## Usage
@@ -58,6 +55,21 @@ The primary way to interact with the toolkit is through its Streamlit web interf
     streamlit run ui/main_app.py
     ```
     This will open the application in your web browser, typically at `http://localhost:8501`.
+
+### Running with Docker
+
+You can also run the application using Docker.
+
+1.  **Build the Docker image:**
+    ```bash
+    docker build -t ethics-toolkit .
+    ```
+
+2.  **Run the Docker container:**
+    ```bash
+    docker run -p 8501:8501 ethics-toolkit
+    ```
+    The application will be accessible in your web browser at `http://localhost:8501`.
 
 ### Using the Core Modules
 

@@ -1,0 +1,9 @@
+.git/
+.vscode/
+__pycache__/
+*.pyc
+.env
+data/
+reports/
+notebooks/
+ui/styles.py
